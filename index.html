@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FraudShield</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d0d;
+  --surface:#141414;
+  --surface2:#1c1c1c;
+  --surface3:#222222;
+  --border:#ffffff0f;
+  --border2:#ffffff18;
+  --text:#f0f0f0;
+  --muted:#666666;
+  --accent:#cc0000;
+  --accent-dim:#cc000025;
+  --accent-hover:#e60000;
+  --danger:#ff4444;
+  --danger-dim:#ff444418;
+  --warn:#f59e0b;
+  --warn-dim:#f59e0b20;
+  --success:#22c55e;
+  --success-dim:#22c55e18;
+  --crit:#cc0000;
+  --crit-dim:#cc000022;
+  --font:'Inter',sans-serif;
+  --mono:'DM Mono',monospace;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden}
+#app{display:flex;height:100vh}
+
+/* Sidebar */
+aside{width:240px;min-width:240px;background:#cc0000;border-right:none;display:flex;flex-direction:column;padding:0}
+.logo{padding:28px 24px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #ffffff25}
+.logo-icon{width:36px;height:36px;background:#ffffff25;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-icon svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.logo-text{font-size:17px;font-weight:700;letter-spacing:-.3px;color:#fff}
+.logo-sub{font-size:10px;color:#ffffff80;font-family:var(--mono);letter-spacing:.5px;margin-top:1px}
+nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:4px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:500;color:#ffffff99;transition:all .15s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:#ffffff18;color:#fff}
+.nav-item.active{background:#fff;color:#cc0000;font-weight:700}
+.nav-item svg{width:18px;height:18px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav-section{font-size:10px;color:#ffffff55;font-family:var(--mono);letter-spacing:1px;padding:16px 14px 6px;text-transform:uppercase}
+aside-bottom{padding:16px 12px}
+.user-badge{margin:12px;padding:12px;border-radius:10px;background:#ffffff18;border:1px solid #ffffff25;display:flex;align-items:center;gap:10px;cursor:pointer}
+.user-avatar{width:32px;height:32px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#cc0000;flex-shrink:0}
+.user-name{font-size:13px;font-weight:600;line-height:1.2;color:#fff}
+.user-email{font-size:11px;color:#ffffff70;font-family:var(--mono)}
+
+/* Main */
+main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.topbar{height:60px;min-height:60px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;position:sticky;top:0;z-index:10;border-left:3px solid var(--accent)}
+.page-title{font-size:16px;font-weight:700;flex:1}
+.search-wrap{position:relative}
+.search-wrap input{background:var(--surface2);border:1px solid var(--border2);color:var(--text);font-family:var(--font);font-size:13px;padding:8px 14px 8px 36px;border-radius:8px;width:220px;outline:none;transition:border-color .15s}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-wrap input::placeholder{color:var(--muted)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.content{padding:28px;flex:1}
+
+/* Auth */
+#auth-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100}
+.auth-card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:40px;width:100%;max-width:420px}
+.auth-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px}
+.auth-logo-icon{width:44px;height:44px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center}.auth-logo-icon svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.auth-title{font-size:28px;font-weight:800}
+.auth-sub{font-size:13px;color:var(--muted);margin-bottom:28px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase}
+.field input{width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--text);font-family:var(--font);font-size:14px;padding:12px 14px;border-radius:10px;outline:none;transition:border-color .15s}
+.field input:focus{border-color:var(--accent)}
+.field input::placeholder{color:var(--muted)}
+.btn-primary{width:100%;background:var(--accent);color:#fff;border:none;font-family:var(--font);font-size:14px;font-weight:600;padding:13px;border-radius:10px;cursor:pointer;transition:opacity .15s;margin-top:4px}
+.btn-primary:hover{opacity:.85}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.auth-switch{text-align:center;margin-top:20px;font-size:13px;color:var(--muted)}
+.auth-switch span{color:var(--accent);cursor:pointer;font-weight:600}
+.auth-switch span:hover{text-decoration:underline}
+.auth-tabs{display:flex;gap:4px;background:var(--surface2);border-radius:10px;padding:4px;margin-bottom:28px}
+.auth-tab{flex:1;padding:8px;text-align:center;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);border:none;background:none;font-family:var(--font);transition:all .15s}
+.auth-tab.active{background:var(--surface);color:var(--text)}
+
+/* Cards & Grid */
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px}
+.stat-label{font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+.stat-val{font-size:28px;font-weight:800;line-height:1}
+.stat-sub{font-size:12px;color:var(--muted);margin-top:6px}
+.stat-card.danger{border-color:var(--danger);background:var(--danger-dim)}
+.stat-card.warn{border-color:var(--warn);background:var(--warn-dim)}
+.stat-card.success{border-color:var(--success);background:var(--success-dim)}
+.stat-card.crit{border-color:var(--crit);background:var(--crit-dim)}
+
+/* Table */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px}
+.card-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:14px;font-weight:700}
+.card-count{font-size:12px;color:var(--muted);font-family:var(--mono)}
+table{width:100%;border-collapse:collapse}
+th{padding:12px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;font-family:var(--mono);border-bottom:1px solid var(--border)}
+td{padding:14px 20px;font-size:13px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600;font-family:var(--mono)}
+.badge.BAIXO{background:#10b98118;color:#10b981}
+.badge.MEDIO{background:#f59e0b20;color:#f59e0b}
+.badge.ALTO{background:#ef444420;color:#ef4444}
+.badge.CRITICO{background:#dc262625;color:#dc2626;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.phone-mono{font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+/* Form page */
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;max-width:640px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-group{margin-bottom:20px}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;letter-spacing:.5px;text-transform:uppercase}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--text);font-family:var(--font);font-size:14px;padding:11px 14px;border-radius:10px;outline:none;transition:border-color .15s}
+.form-group select option{background:var(--surface2)}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent)}
+.form-group input::placeholder,.form-group textarea::placeholder{color:var(--muted)}
+.form-group textarea{resize:vertical;min-height:100px}
+.risk-selector{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.risk-opt{padding:10px 8px;border-radius:8px;border:1px solid var(--border2);cursor:pointer;text-align:center;font-size:12px;font-weight:600;font-family:var(--mono);color:var(--muted);transition:all .15s}
+.risk-opt:hover{border-color:var(--border)}
+.risk-opt.sel-BAIXO{border-color:#10b981;background:#10b98118;color:#10b981}
+.risk-opt.sel-MEDIO{border-color:#f59e0b;background:#f59e0b20;color:#f59e0b}
+.risk-opt.sel-ALTO{border-color:#ef4444;background:#ef444420;color:#ef4444}
+.risk-opt.sel-CRITICO{border-color:#dc2626;background:#dc262625;color:#dc2626}
+.btn-submit{background:var(--accent);color:#fff;border:none;font-family:var(--font);font-size:14px;font-weight:700;padding:13px 28px;border-radius:10px;cursor:pointer;transition:opacity .15s}
+.btn-submit:hover{opacity:.85}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed}
+.btn-outline{background:transparent;color:var(--muted);border:1px solid var(--border2);font-family:var(--font);font-size:14px;font-weight:600;padding:12px 20px;border-radius:10px;cursor:pointer;margin-right:10px;transition:all .15s}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Tips */
+.tips-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.tip-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;transition:border-color .15s}
+.tip-card:hover{border-color:var(--border2)}
+.tip-icon{font-size:28px;margin-bottom:12px}
+.tip-title{font-size:14px;font-weight:700;margin-bottom:8px}
+.tip-content{font-size:13px;color:var(--muted);line-height:1.6}
+.tip-cat{display:inline-block;margin-top:12px;font-size:10px;font-family:var(--mono);color:var(--accent);background:var(--accent-dim);padding:3px 8px;border-radius:5px}
+
+/* Consulta */
+.consult-result{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:20px}
+.consult-phone{font-size:32px;font-weight:800;font-family:var(--mono);margin-bottom:4px}
+.consult-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+.consult-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.c-stat{background:var(--surface2);border-radius:10px;padding:14px;text-align:center}
+.c-stat-val{font-size:22px;font-weight:800;font-family:var(--mono)}
+.c-stat-label{font-size:11px;color:var(--muted);margin-top:4px}
+.risk-big{display:flex;align-items:center;gap:12px;padding:16px;border-radius:10px;font-weight:700;font-size:18px;font-family:var(--mono)}
+.risk-big.BAIXO{background:#10b98115;color:#10b981;border:1px solid #10b98135}
+.risk-big.MEDIO{background:#f59e0b15;color:#f59e0b;border:1px solid #f59e0b35}
+.risk-big.ALTO{background:#ef444415;color:#ef4444;border:1px solid #ef444435}
+.risk-big.CRITICO{background:#dc262615;color:#dc2626;border:1px solid #dc262635}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:14px 20px;font-size:13px;font-weight:600;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:320px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{border-color:var(--success);color:var(--success)}
+.toast.err{border-color:var(--danger);color:var(--danger)}
+
+/* Empty */
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-text{font-size:14px}
+
+/* Loader */
+.loader{text-align:center;padding:40px;color:var(--muted);font-family:var(--mono);font-size:13px}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:#00000088;z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:18px;padding:32px;width:90%;max-width:480px;transform:translateY(20px);transition:transform .2s}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:20px}
+.modal-close{float:right;background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;font-family:var(--font);line-height:1}
+.modal-close:hover{color:var(--text)}
+
+/* Chip */
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:12px;font-family:var(--mono);cursor:pointer;color:var(--muted);transition:all .15s}
+.chip:hover,.chip.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.dot{width:6px;height:6px;border-radius:50%;background:#ff4444;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div>
+        <div style="font-size:22px;font-weight:800">FraudShield</div>
+        <div style="font-size:11px;color:var(--muted);font-family:var(--mono)">Trust Call Protection</div>
+      </div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Entrar</button>
+      <button class="auth-tab" onclick="switchTab('register')">Cadastrar</button>
+    </div>
+    <div id="login-form">
+      <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="seu@email.com"/></div>
+      <div class="field"><label>Senha</label><input type="password" id="login-pass" placeholder="••••••••"/></div>
+      <button class="btn-primary" onclick="doLogin()">Entrar</button>
+    </div>
+    <div id="register-form" style="display:none">
+      <div class="field"><label>Nome completo</label><input type="text" id="reg-name" placeholder="João Silva"/></div>
+      <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="seu@email.com"/></div>
+      <div class="field"><label>Senha</label><input type="password" id="reg-pass" placeholder="mínimo 6 caracteres"/></div>
+      <button class="btn-primary" onclick="doRegister()">Criar conta</button>
+    </div>
+    <div style="margin-top:20px;padding:14px;background:var(--surface2);border-radius:10px;font-size:12px;color:var(--muted);font-family:var(--mono);line-height:1.6">
+      ⚠ Certifique-se que o back-end está rodando em<br><strong style="color:var(--text)">http://localhost:8080</strong>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <aside>
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div>
+        <div class="logo-text">FraudShield</div>
+        <div class="logo-sub">TRUST CALL TC</div>
+      </div>
+    </div>
+    <nav>
+      <div class="nav-section">Principal</div>
+      <button class="nav-item active" onclick="go('dashboard')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" onclick="go('consulta')">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Consultar Número
+      </button>
+      <div class="nav-section">Denúncias</div>
+      <button class="nav-item" onclick="go('denuncias')">
+        <svg viewBox="0 0 24 24"><path d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>
+        Ver Denúncias
+        <div class="dot" style="margin-left:auto"></div>
+      </button>
+      <button class="nav-item" onclick="go('nova-denuncia')">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        Nova Denúncia
+      </button>
+      <div class="nav-section">Informações</div>
+      <button class="nav-item" onclick="go('dicas')">
+        <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        Dicas de Segurança
+      </button>
+    </nav>
+    <div class="user-badge" id="user-badge">
+      <div class="user-avatar" id="user-avatar">??</div>
+      <div>
+        <div class="user-name" id="user-name-display">Usuário</div>
+        <div class="user-email" id="user-email-display">email@...</div>
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div class="page-title" id="page-title">Dashboard</div>
+      <div class="search-wrap" id="search-area" style="display:none">
+        <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="search-input" placeholder="Buscar..." oninput="onSearch()"/>
+      </div>
+      <button class="btn-outline" style="margin-left:auto;padding:8px 16px;font-size:12px" onclick="doLogout()">Sair</button>
+    </div>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'http://localhost:8080';
+let token = localStorage.getItem('fs_token');
+let currentUser = JSON.parse(localStorage.getItem('fs_user') || 'null');
+let currentPage = 'dashboard';
+let allReports = [];
+let allTips = [];
+
+// ── AUTH ─────────────────────────────────────────────────────────
+function switchTab(t) {
+  document.querySelectorAll('.auth-tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='login'?0:1)));
+  document.getElementById('login-form').style.display = t==='login'?'block':'none';
+  document.getElementById('register-form').style.display = t==='register'?'block':'none';
+}
+
+// ── CORREÇÃO 1: doLogin — endpoint /api/auth/login + campo "senha" ──
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value.trim();
+  if (!email || !pass) return toast('Preencha todos os campos','err');
+  try {
+    const r = await fetch(`${API}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, senha: pass })   // ← era "password"
+    });
+    if (!r.ok) throw new Error();
+    const d = await r.json();
+    token = d.token;
+    currentUser = { name: d.nome || email.split('@')[0], email: d.email || email };
+    localStorage.setItem('fs_token', token);
+    localStorage.setItem('fs_user', JSON.stringify(currentUser));
+    showApp();
+  } catch {
+    // fallback demo
+    token = 'demo';
+    currentUser = { name: email.split('@')[0], email };
+    localStorage.setItem('fs_token', token);
+    localStorage.setItem('fs_user', JSON.stringify(currentUser));
+    showApp();
+    toast('Modo demo ativado (API offline)','ok');
+  }
+}
+
+// ── CORREÇÃO 2: doRegister — endpoint /api/auth/cadastro + campos "nome"/"senha" ──
+async function doRegister() {
+  const name  = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass  = document.getElementById('reg-pass').value.trim();
+  if (!name || !email || !pass) return toast('Preencha todos os campos','err');
+  try {
+    const r = await fetch(`${API}/api/auth/cadastro`, {   // ← era /auth/register
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome: name, email, senha: pass })  // ← era name/password
+    });
+    if (!r.ok) throw new Error(await r.text());
+    toast('Conta criada! Faça login.','ok');
+    switchTab('login');
+  } catch (e) {
+    toast('Erro ao criar conta: ' + (e.message || 'verifique a API.'),'err');
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem('fs_token');
+  localStorage.removeItem('fs_user');
+  token = null; currentUser = null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+}
+
+function showApp() {
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  const name = currentUser?.name || 'Usuário';
+  document.getElementById('user-name-display').textContent = name;
+  document.getElementById('user-email-display').textContent = currentUser?.email || '';
+  document.getElementById('user-avatar').textContent = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  go('dashboard');
+}
+
+// ── ROUTER ───────────────────────────────────────────────────────
+// IMPORTANTE: titles e pages devem ser declarados ANTES do if(token)
+// para evitar ReferenceError (Temporal Dead Zone com const)
+const titles = {dashboard:'Dashboard',consulta:'Consultar Número',denuncias:'Denúncias',['nova-denuncia']:'Nova Denúncia',dicas:'Dicas de Segurança'};
+function go(page) {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  document.querySelector(`.nav-item[onclick="go('${page}')"]`)?.classList.add('active');
+  document.getElementById('page-title').textContent = titles[page]||page;
+  document.getElementById('search-area').style.display = (page==='denuncias')?'flex':'none';
+  document.getElementById('search-input') && (document.getElementById('search-input').value='');
+  const c = document.getElementById('content');
+  c.innerHTML = '<div class="loader">Carregando...</div>';
+  pages[page]?.(c);
+}
+
+// ── API HELPERS ───────────────────────────────────────────────────
+async function apiFetch(path, opts={}) {
+  const h = { 'Content-Type': 'application/json' };
+  if (token && token !== 'demo') h['Authorization'] = `Bearer ${token}`;
+  const r = await fetch(API + path, { ...opts, headers: { ...h, ...(opts.headers||{}) } });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+// ── MOCK DATA ─────────────────────────────────────────────────────
+const mockReports = [
+  {id:1,phone_number:'(11)99999-0001',description:'Ligou dizendo ser do Bradesco e pediu minha senha.',risk_level:'CRITICO',scam_type:'FALSO_BANCO',created_at:'2024-11-10T14:32:00'},
+  {id:2,phone_number:'(11)98765-4321',description:'Ofereceu empréstimo com taxa zero e pediu dados pessoais.',risk_level:'ALTO',scam_type:'PHISHING',created_at:'2024-11-09T09:15:00'},
+  {id:3,phone_number:'(21)3000-1234',description:'Clonaram meu WhatsApp e pediram PIX para amigos.',risk_level:'CRITICO',scam_type:'WHATSAPP_CLONADO',created_at:'2024-11-08T17:45:00'},
+  {id:4,phone_number:'(11)91234-5678',description:'Falso suporte técnico pedindo acesso remoto.',risk_level:'ALTO',scam_type:'FALSO_SUPORTE',created_at:'2024-11-07T11:20:00'},
+  {id:5,phone_number:'(31)99876-5432',description:'PIX falso com comprovante editado.',risk_level:'MEDIO',scam_type:'PIX_FALSO',created_at:'2024-11-06T08:00:00'},
+  {id:6,phone_number:'(41)98000-0001',description:'Tentou vender produto e sumiu após pagamento.',risk_level:'BAIXO',scam_type:'OUTRO',created_at:'2024-11-05T13:10:00'},
+];
+const mockTips = [
+  {id:1,title:'Nunca forneça sua senha por telefone',content:'Bancos NUNCA ligam pedindo senha, token ou código. Se receber essa ligação, desligue imediatamente.',category:'LIGACAO',icon_url:'🔒'},
+  {id:2,title:'Desconfie de urgência e pressão',content:'Golpistas criam senso de urgência para impedir que você pense. Frases como "sua conta será bloqueada agora" são sinais de golpe.',category:'PSICOLOGIA',icon_url:'⚠️'},
+  {id:3,title:'Verifique o número antes de atender',content:'Números de bancos geralmente começam com 0800. Números de celular pedindo dados são suspeitos.',category:'LIGACAO',icon_url:'📞'},
+  {id:4,title:'Cuidado com PIX urgente',content:'Se alguém pede PIX urgente mesmo sendo familiar em apuro, confirme a identidade antes de transferir.',category:'PIX',icon_url:'💸'},
+  {id:5,title:'Links suspeitos no WhatsApp',content:'Não clique em links de números desconhecidos. Promoções impossíveis são iscas para roubo de dados.',category:'WHATSAPP',icon_url:'📱'},
+  {id:6,title:'Ative o duplo fator de autenticação',content:'Sempre ative o 2FA no app do banco e redes sociais. Dificulta muito o acesso de golpistas.',category:'SEGURANCA_DIGITAL',icon_url:'🛡️'},
+];
+
+// ── PAGES ─────────────────────────────────────────────────────────
+const pages = {
+  async dashboard(c) {
+    let reports = [];
+    try {
+      // Tenta buscar denúncias do back-end
+      const data = await apiFetch('/api/denuncias/minhas');
+      reports = data.content || data || [];
+    } catch {
+      reports = mockReports;
+    }
+    allReports = reports;
+    const total = reports.length;
+    const crit  = reports.filter(r => r.risk_level === 'CRITICO').length;
+    const alto  = reports.filter(r => r.risk_level === 'ALTO').length;
+    const phones = [...new Set(reports.map(r => r.phone_number))].length;
+    c.innerHTML = `
+      <div class="grid-4">
+        <div class="stat-card"><div class="stat-label">Total de Denúncias</div><div class="stat-val">${total}</div><div class="stat-sub">registros no sistema</div></div>
+        <div class="stat-card crit"><div class="stat-label">Nível Crítico</div><div class="stat-val" style="color:var(--crit)">${crit}</div><div class="stat-sub">requerem atenção</div></div>
+        <div class="stat-card danger"><div class="stat-label">Nível Alto</div><div class="stat-val" style="color:var(--danger)">${alto}</div><div class="stat-sub">alto risco</div></div>
+        <div class="stat-card success"><div class="stat-label">Números Únicos</div><div class="stat-val" style="color:var(--success)">${phones}</div><div class="stat-sub">identificados</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Denúncias Recentes</div><div class="card-count">${Math.min(reports.length,6)} de ${total}</div></div>
+          <table><thead><tr><th>Número</th><th>Tipo</th><th>Risco</th></tr></thead><tbody>
+          ${reports.slice(0,6).map(r=>`<tr>
+            <td><span class="phone-mono">${r.phone_number||r.numeroInformado||'—'}</span></td>
+            <td style="color:var(--muted);font-size:12px">${r.scam_type||r.tipoGolpe||'—'}</td>
+            <td><span class="badge ${r.risk_level||r.nivelRisco||'BAIXO'}">${r.risk_level||r.nivelRisco||'BAIXO'}</span></td>
+          </tr>`).join('')}
+          </tbody></table>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Distribuição por Tipo</div></div>
+          <div style="padding:20px">${getTypeDist(reports)}</div>
+        </div>
+      </div>
+    `;
+  },
+
+  async denuncias(c) {
+    let reports = [];
+    try {
+      const data = await apiFetch('/api/denuncias/minhas');
+      reports = data.content || data || [];
+    } catch {
+      reports = mockReports;
+    }
+    allReports = reports;
+    renderDenuncias(c, reports);
+  },
+
+  async ['nova-denuncia'](c) {
+    // Busca tipos de golpe do back-end para popular o select
+    let tipos = [];
+    try { tipos = await apiFetch('/api/tipos-golpe'); } catch { tipos = []; }
+
+    const tiposOpts = tipos.length
+      ? tipos.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('')
+      : `<option value="">Selecionar...</option>
+         <option value="FALSO_BANCO">Falso Banco</option>
+         <option value="FALSO_SUPORTE">Falso Suporte</option>
+         <option value="PIX_FALSO">PIX Falso</option>
+         <option value="WHATSAPP_CLONADO">WhatsApp Clonado</option>
+         <option value="PHISHING">Phishing</option>
+         <option value="VISHING">Vishing</option>
+         <option value="OUTRO">Outro</option>`;
+
+    c.innerHTML = `
+      <div class="form-card">
+        <h2 style="font-size:18px;font-weight:700;margin-bottom:6px">Registrar Denúncia</h2>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:24px">Informe os dados do contato suspeito para proteger outros usuários.</p>
+        <div class="form-group">
+          <label>Número de Telefone *</label>
+          <input type="tel" id="f-phone" placeholder="(11) 99999-9999"/>
+        </div>
+        <div class="form-group">
+          <label>Tipo de Golpe</label>
+          <select id="f-type"><option value="">Selecionar...</option>${tiposOpts}</select>
+        </div>
+        <div class="form-group">
+          <label>Banco ou Órgão Fingido</label>
+          <input type="text" id="f-banco" placeholder="Ex: Bradesco, INSS, Receita Federal"/>
+        </div>
+        <div class="form-group">
+          <label>Houve prejuízo financeiro?</label>
+          <select id="f-prejuizo"><option value="false">Não</option><option value="true">Sim</option></select>
+        </div>
+        <div class="form-group" id="f-valor-wrap" style="display:none">
+          <label>Valor estimado (R$)</label>
+          <input type="number" id="f-valor" placeholder="0.00" min="0" step="0.01"/>
+        </div>
+        <div class="form-group">
+          <label>Descrição do Ocorrido *</label>
+          <textarea id="f-desc" placeholder="Descreva o que aconteceu com o máximo de detalhes possível..."></textarea>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:8px">
+          <button class="btn-outline" onclick="go('denuncias')">Cancelar</button>
+          <button class="btn-submit" id="submit-btn" onclick="submitReport()">Enviar Denúncia</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('f-prejuizo').addEventListener('change', function() {
+      document.getElementById('f-valor-wrap').style.display = this.value === 'true' ? 'block' : 'none';
+    });
+  },
+
+  async consulta(c) {
+    c.innerHTML = `
+      <div style="max-width:560px">
+        <p style="color:var(--muted);font-size:13px;margin-bottom:20px">Verifique se um número de telefone já foi denunciado por outros usuários.</p>
+        <div style="display:flex;gap:12px;margin-bottom:8px">
+          <input type="tel" id="consult-phone" placeholder="(11) 99999-9999" style="flex:1;background:var(--surface);border:1px solid var(--border2);color:var(--text);font-family:var(--font);font-size:14px;padding:12px 16px;border-radius:10px;outline:none" onkeydown="if(event.key==='Enter')consultPhone()"/>
+          <button class="btn-submit" onclick="consultPhone()">Consultar</button>
+        </div>
+        <div id="consult-result"></div>
+      </div>
+    `;
+  },
+
+  async dicas(c) {
+    let tips = [];
+    try {
+      const data = await apiFetch('/api/tipos-golpe');
+      // Mapeia tipos de golpe como dicas educativas
+      tips = data.map(t => ({
+        id: t.id,
+        title: t.nome,
+        content: t.orientacoes || t.descricao,
+        category: t.orgaoFingido?.categoria?.toUpperCase() || 'GERAL',
+        icon_url: '🛡️'
+      }));
+    } catch {
+      tips = mockTips;
+    }
+    allTips = tips;
+    const cats = [...new Set(tips.map(t => t.category))];
+    c.innerHTML = `
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px">
+        <div class="chip active" onclick="filterTips('')" data-cat="">Todas</div>
+        ${cats.map(cat=>`<div class="chip" onclick="filterTips('${cat}')" data-cat="${cat}">${cat.replace(/_/g,' ')}</div>`).join('')}
+      </div>
+      <div class="tips-grid" id="tips-grid">${renderTipCards(tips)}</div>
+    `;
+  }
+};
+
+// Inicia sessão após TODOS os const e funções estarem definidos
+if (token) { showApp(); }
+
+function renderDenuncias(c, reports) {
+  if (!reports.length) {
+    c.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Nenhuma denúncia encontrada.</div></div>';
+    return;
+  }
+  c.innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Todas as Denúncias</div>
+        <div class="card-count">${reports.length} registros</div>
+      </div>
+      <table>
+        <thead><tr><th>Número</th><th>Tipo</th><th>Risco</th><th>Descrição</th><th>Data</th></tr></thead>
+        <tbody>
+          ${reports.map(r=>`<tr>
+            <td><span class="phone-mono" style="cursor:pointer;color:var(--accent)" onclick="goConsult('${r.phone_number||r.numeroInformado||''}')">${r.phone_number||r.numeroInformado||'—'}</span></td>
+            <td><span style="font-size:12px;color:var(--muted)">${r.scam_type||r.tipoGolpe||'—'}</span></td>
+            <td><span class="badge ${r.risk_level||r.nivelRisco||'BAIXO'}">${r.risk_level||r.nivelRisco||'BAIXO'}</span></td>
+            <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:12px">${r.description||r.descricao||''}</td>
+            <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${fmtDate(r.created_at||r.createdAt)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function onSearch() {
+  const q = document.getElementById('search-input')?.value.toLowerCase() || '';
+  const filtered = allReports.filter(r =>
+    (r.phone_number||r.numeroInformado||'').includes(q) ||
+    (r.description||r.descricao||'').toLowerCase().includes(q) ||
+    (r.scam_type||r.tipoGolpe||'').toLowerCase().includes(q) ||
+    (r.risk_level||r.nivelRisco||'').toLowerCase().includes(q)
+  );
+  renderDenuncias(document.getElementById('content'), filtered);
+}
+
+function getTypeDist(reports) {
+  const map = {};
+  reports.forEach(r => { const t = r.scam_type||r.tipoGolpe||'OUTRO'; map[t]=(map[t]||0)+1; });
+  const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]);
+  const max = sorted[0]?.[1]||1;
+  const colors = {FALSO_BANCO:'#cc0000',PHISHING:'#ff4444',WHATSAPP_CLONADO:'#ff7a7a',PIX_FALSO:'var(--warn)',FALSO_SUPORTE:'#ff2222',VISHING:'#aa0000',OUTRO:'var(--muted)'};
+  return sorted.map(([t,n])=>`
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:12px;font-family:var(--mono)">${t.replace(/_/g,' ')}</span>
+        <span style="font-size:12px;color:var(--muted)">${n}</span>
+      </div>
+      <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:${Math.round(n/max*100)}%;background:${colors[t]||'var(--accent)'};border-radius:3px;transition:width .5s"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderTipCards(tips) {
+  return tips.map(t=>`
+    <div class="tip-card">
+      <div class="tip-icon">${t.icon_url||'💡'}</div>
+      <div class="tip-title">${t.title}</div>
+      <div class="tip-content">${t.content}</div>
+      <span class="tip-cat">${(t.category||'').replace(/_/g,' ')}</span>
+    </div>
+  `).join('');
+}
+
+function filterTips(cat) {
+  document.querySelectorAll('.chip').forEach(el=>el.classList.toggle('active',el.dataset.cat===cat));
+  const filtered = cat ? allTips.filter(t=>t.category===cat) : allTips;
+  document.getElementById('tips-grid').innerHTML = renderTipCards(filtered);
+}
+
+// ── CORREÇÃO 3: submitReport — endpoint /api/denuncias + campos corretos ──
+async function submitReport() {
+  const numeroInformado = document.getElementById('f-phone').value.trim();
+  const descricao       = document.getElementById('f-desc').value.trim();
+  const tipoGolpeId     = document.getElementById('f-type').value || null;
+  const bancoFingido    = document.getElementById('f-banco').value.trim() || null;
+  const houvePrejuizo   = document.getElementById('f-prejuizo').value === 'true';
+  const prejuizoEl      = document.getElementById('f-valor');
+  const prejuizoEstimado = houvePrejuizo && prejuizoEl?.value ? parseFloat(prejuizoEl.value) : null;
+
+  if (!numeroInformado || !descricao) return toast('Preencha número e descrição.','err');
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+
+  try {
+    await apiFetch('/api/denuncias', {
+      method: 'POST',
+      body: JSON.stringify({
+        numeroInformado,
+        descricao,
+        tipoGolpeId: tipoGolpeId ? parseInt(tipoGolpeId) : null,
+        bancoFingido,
+        houvePrejuizo,
+        prejuizoEstimado
+      })
+    });
+    toast('Denúncia registrada com sucesso!','ok');
+    go('denuncias');
+  } catch {
+    toast('Denúncia enviada (demo)!','ok');
+    go('denuncias');
+  }
+}
+
+function goConsult(phone) {
+  go('consulta');
+  setTimeout(() => {
+    const el = document.getElementById('consult-phone');
+    if (el) { el.value = phone; consultPhone(); }
+  }, 200);
+}
+
+// ── CORREÇÃO 4: consultPhone — endpoint /api/numeros/consultar?numero= ──
+async function consultPhone() {
+  const phone = document.getElementById('consult-phone')?.value.trim();
+  if (!phone) return;
+  const rc = document.getElementById('consult-result');
+  rc.innerHTML = '<div class="loader">Consultando...</div>';
+
+  let data = null;
+  try {
+    // Endpoint correto: /api/numeros/consultar?numero={digitos}
+    data = await apiFetch(`/api/numeros/consultar?numero=${phone.replace(/\D/g,'')}`);
+  } catch {
+    // Fallback demo
+    const found = mockReports.filter(r => r.phone_number.replace(/\D/g,'') === phone.replace(/\D/g,''));
+    if (found.length) {
+      data = {
+        numeroCompleto: phone,
+        totalDenuncias: found.length,
+        nivelRisco: found.reduce((a,b)=>riskW(b.risk_level)>riskW(a.risk_level)?b:a,found[0]).risk_level,
+        scoreRisco: found.length * 15
+      };
+    }
+  }
+
+  if (!data || !data.totalDenuncias) {
+    rc.innerHTML = `
+      <div class="consult-result" style="border-color:var(--success)">
+        <div style="font-size:36px;margin-bottom:8px">✅</div>
+        <div style="font-size:16px;font-weight:700;color:var(--success)">Nenhuma denúncia encontrada</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:6px">O número <strong style="font-family:var(--mono)">${phone}</strong> não possui denúncias registradas.</div>
+      </div>`;
+    return;
+  }
+
+  const nivel = data.nivelRisco || 'BAIXO';
+  rc.innerHTML = `
+    <div class="consult-result">
+      <div class="consult-phone">${data.numeroCompleto || phone}</div>
+      <div class="consult-sub">Resultado da consulta</div>
+      <div class="consult-stats">
+        <div class="c-stat"><div class="c-stat-val">${data.totalDenuncias}</div><div class="c-stat-label">Denúncias</div></div>
+        <div class="c-stat"><div class="c-stat-val">${data.scoreRisco ?? '—'}</div><div class="c-stat-label">Score de risco</div></div>
+        <div class="c-stat"><div class="c-stat-val">${data.operadora || '—'}</div><div class="c-stat-label">Operadora</div></div>
+      </div>
+      <div class="risk-big ${nivel}">
+        <span style="font-size:24px">${riskEmoji(nivel)}</span>
+        Risco ${nivel}
+      </div>
+    </div>`;
+}
+
+function riskW(r) { return {BAIXO:1,MEDIO:2,ALTO:3,CRITICO:4}[r]||0; }
+function riskEmoji(r) { return {BAIXO:'🟢',MEDIO:'🟡',ALTO:'🔴',CRITICO:'🚨'}[r]||'❓'; }
+function fmtDate(d) { if(!d)return'—'; try{return new Date(d).toLocaleDateString('pt-BR');}catch{return d;} }
+
+function toast(msg, type='ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast '+type+' show';
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
